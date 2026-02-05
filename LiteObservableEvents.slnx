@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/LiteObservableEvents/LiteObservableEvents.csproj" />
+  <Project Path="src/WpfApp/WpfApp.csproj" />
+</Solution>
