@@ -3,9 +3,12 @@ using System.Reactive.Disposables;
 
 namespace LiteObservableEvents;
 
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+
 [SuppressMessage("Performance", "CA1822:Mark members as static")]
 [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression")]
-public class WeakReferenceEventHub
+public class WeakReferenceEventHub : IDisposable
 {
     /// <summary>
     /// Gets the default singleton instance of <see cref="WeakReferenceEventHub"/>.
@@ -17,6 +20,15 @@ public class WeakReferenceEventHub
     /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles")]
     protected readonly CompositeDisposable _subscriptions = [];
+
+    /// <summary>
+    /// Disposes all managed subscriptions.
+    /// </summary>
+    [Obsolete("Use UnsubscribeAll() to remove dead holders without disposing the hub itself.")]
+    public void Dispose()
+    {
+        _subscriptions.Dispose();
+    }
 
     /// <summary>
     /// Removes and disposes all subscriptions whose holder has been garbage-collected.
@@ -183,6 +195,19 @@ public class WeakReferenceEventHub
     }
 
     /// <summary>
+    /// Unsubscribes and disposes all managed subscriptions without disposing the <see cref="_subscriptions"/> collection itself.
+    /// This allows the hub to continue managing new subscriptions after clearing existing ones.
+    /// </summary>
+    public void UnsubscribeAll()
+    {
+        foreach (IDisposable subscription in _subscriptions)
+        {
+            subscription.Dispose();
+        }
+        _subscriptions.Clear();
+    }
+
+    /// <summary>
     /// Unsubscribes and disposes all holder-managed subscriptions without disposing the <see cref="_subscriptions"/> collection itself.
     /// This allows the hub to continue managing new subscriptions after clearing existing ones.
     /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
@@ -236,3 +261,6 @@ public static class ObservableEventHubExtensions
         return subscription;
     }
 }
+
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
+#pragma warning restore IDE0079 // Remove unnecessary suppression

@@ -23,6 +23,7 @@ public partial class StrongReferenceEventHub : IDisposable
     /// <summary>
     /// Disposes all managed subscriptions.
     /// </summary>
+    [Obsolete("Use UnsubscribeAll() to remove dead holders without disposing the hub itself.")]
     public void Dispose()
     {
         _subscriptions.Dispose();
