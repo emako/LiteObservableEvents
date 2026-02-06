@@ -8,26 +8,50 @@
     <icon>Logo.png</icon>
     <license type="expression">MIT</license>
     <readme>README.md</readme>
-    <projectUrl>https://github.com/emako/LiteObservableEvents</projectUrl>   
+    <projectUrl>https://github.com/emako/LiteObservableEvents</projectUrl>
+    <repository type="git" url="https://github.com/emako/LiteObservableEvents" />
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>XXX</description>
     <releaseNotes>https://github.com/emako/LiteObservableEvents/releases</releaseNotes>
     <copyright>XXX</copyright>
     <tags>LiteObservableEvents ObservableEvents MVVM</tags>
-   </metadata>
+    <dependencies>
+      <group targetFramework="netstandard2.0" />
+      <group targetFramework="netstandard2.1" />
+      <group targetFramework="net462" />
+      <group targetFramework="net472" />
+      <group targetFramework="net48" />
+      <group targetFramework="net6.0" />
+      <group targetFramework="net7.0" />
+      <group targetFramework="net8.0" />
+      <group targetFramework="net9.0" />
+      <group targetFramework="net10.0" />
+    </dependencies>
+  </metadata>
   <files>
   <file src="..\..\Logo.png" target="" />
   <file src="..\..\README.md" target="" />
   <file src="..\LiteObservableEvents\bin\Release\net462\LiteObservableEvents.dll" target="lib\net462\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net462\LiteObservableEvents.pdb" target="lib\net462\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net472\LiteObservableEvents.dll" target="lib\net472\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net472\LiteObservableEvents.pdb" target="lib\net472\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net48\LiteObservableEvents.dll" target="lib\net48\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net48\LiteObservableEvents.pdb" target="lib\net48\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net6.0\LiteObservableEvents.dll" target="lib\net6.0\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net6.0\LiteObservableEvents.pdb" target="lib\net6.0\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net7.0\LiteObservableEvents.dll" target="lib\net7.0\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net7.0\LiteObservableEvents.pdb" target="lib\net7.0\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net8.0\LiteObservableEvents.dll" target="lib\net8.0\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net8.0\LiteObservableEvents.pdb" target="lib\net8.0\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net9.0\LiteObservableEvents.dll" target="lib\net9.0\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net9.0\LiteObservableEvents.pdb" target="lib\net9.0\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net10.0\LiteObservableEvents.dll" target="lib\net10.0\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\net10.0\LiteObservableEvents.pdb" target="lib\net10.0\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\netstandard2.0\LiteObservableEvents.dll" target="lib\netstandard2.0\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\netstandard2.0\LiteObservableEvents.pdb" target="lib\netstandard2.0\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\netstandard2.1\LiteObservableEvents.dll" target="lib\netstandard2.1\LiteObservableEvents.dll" />
+  <file src="..\LiteObservableEvents\bin\Release\netstandard2.1\LiteObservableEvents.pdb" target="lib\netstandard2.1\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents.SourceGenerator\bin\Release\netstandard2.0\LiteObservableEvents.SourceGenerator.dll" target="analyzers\dotnet\cs\LiteObservableEvents.SourceGenerator.dll" />
-  </files> 
+  <file src="..\LiteObservableEvents.SourceGenerator\bin\Release\netstandard2.0\LiteObservableEvents.SourceGenerator.pdb" target="analyzers\dotnet\cs\LiteObservableEvents.SourceGenerator.pdb" />
+  </files>
 </package>
