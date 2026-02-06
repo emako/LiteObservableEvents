@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace LiteObservableEvents.Interactions;
+﻿namespace LiteObservableEvents.Interactions;
 
 /// <summary>
 /// Contains contextual information for an interaction.

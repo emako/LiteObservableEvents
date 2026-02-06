@@ -5,12 +5,32 @@ namespace LiteObservableEvents;
 
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
 
-public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : IObservableEvent<TEventArgs>
+public class ObservableEvent<TEventArgs> : IObservableEvent<TEventArgs>
 {
-    protected IObservable<TEventArgs>? _observable = observable;
+    protected IObservable<TEventArgs>? _observable = null;
     protected IDisposable? _subscription = null;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ObservableEvent{TEventArgs}"/> class.
+    /// </summary>
+    public ObservableEvent()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ObservableEvent{TEventArgs}"/> class with the specified observable.
+    /// </summary>
+    /// <param name="observable">The observable to subscribe to.</param>
+    public ObservableEvent(IObservable<TEventArgs> observable)
+    {
+        _observable = observable;
+    }
+
+    /// <summary>
+    /// Disposes the observable event and unsubscribes from the underlying observable.
+    /// </summary>
     public virtual void Dispose()
     {
         _observable = null;
@@ -18,6 +38,43 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         _subscription = null;
     }
 
+    /// <summary>
+    /// Subscribes the specified observer to the current observable.
+    /// </summary>
+    /// <param name="observer">The observer to subscribe.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
+    public ObservableEvent<TEventArgs> Subscribe(IObserver<TEventArgs> observer)
+    {
+        if (_observable is null)
+            throw new ArgumentNullException(nameof(_observable), "Observable is not set. Use a different Subscribe overload to set the observable.");
+
+        _subscription?.Dispose();
+        _subscription = _observable?.Subscribe(observer);
+        return this;
+    }
+
+    /// <summary>
+    /// Subscribes the specified action to the current observable.
+    /// </summary>
+    /// <param name="onNext">The action to invoke for each event.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
+    public ObservableEvent<TEventArgs> Subscribe(Action<TEventArgs> onNext)
+    {
+        if (_observable is null)
+            throw new ArgumentNullException(nameof(_observable), "Observable is not set. Use a different Subscribe overload to set the observable.");
+
+        _subscription?.Dispose();
+        _subscription = _observable?.Subscribe(onNext);
+        return this;
+    }
+
+    /// <summary>
+    /// Subscribes to an event on the specified target object using the event name and observer.
+    /// </summary>
+    /// <param name="target">The target object containing the event.</param>
+    /// <param name="eventName">The name of the event to subscribe to.</param>
+    /// <param name="observer">The observer to subscribe.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(object target, string eventName, IObserver<TEventArgs> observer)
     {
         _observable = CreateObservableFromEventInfo(target, eventName);
@@ -26,6 +83,13 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return this;
     }
 
+    /// <summary>
+    /// Subscribes to an event on the specified target object using the event name and action.
+    /// </summary>
+    /// <param name="target">The target object containing the event.</param>
+    /// <param name="eventName">The name of the event to subscribe to.</param>
+    /// <param name="onNext">The action to invoke for each event.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(object target, string eventName, Action<TEventArgs> onNext)
     {
         _observable = CreateObservableFromEventInfo(target, eventName);
@@ -34,6 +98,14 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return this;
     }
 
+    /// <summary>
+    /// Subscribes to an event using delegate add/remove handlers and an observer.
+    /// </summary>
+    /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="observer">The observer to subscribe.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe<TDelegate>(Action<TDelegate> addHandler, Action<TDelegate> removeHandler, IObserver<TEventArgs> observer)
     {
         _observable = CreateObservableFromEventPattern(addHandler, removeHandler);
@@ -42,6 +114,14 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return this;
     }
 
+    /// <summary>
+    /// Subscribes to an event using delegate add/remove handlers and an action.
+    /// </summary>
+    /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="onNext">The action to invoke for each event.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe<TDelegate>(Action<TDelegate> addHandler, Action<TDelegate> removeHandler, Action<TEventArgs> onNext)
     {
         _observable = CreateObservableFromEventPattern(addHandler, removeHandler);
@@ -50,6 +130,13 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return this;
     }
 
+    /// <summary>
+    /// Subscribes to an event using add/remove handlers for <see cref="Action{TEventArgs}"/> and an observer.
+    /// </summary>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="observer">The observer to subscribe.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, IObserver<TEventArgs> observer)
     {
         _observable = CreateObservableFromEvent(addHandler, removeHandler);
@@ -58,6 +145,13 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return this;
     }
 
+    /// <summary>
+    /// Subscribes to an event using add/remove handlers for <see cref="Action{TEventArgs}"/> and an action.
+    /// </summary>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="onNext">The action to invoke for each event.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, Action<TEventArgs> onNext)
     {
         _observable = CreateObservableFromEvent(addHandler, removeHandler);
@@ -66,6 +160,12 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return this;
     }
 
+    /// <summary>
+    /// Creates an observable from an event on the specified target object using reflection.
+    /// </summary>
+    /// <param name="target">The target object containing the event.</param>
+    /// <param name="eventName">The name of the event to observe.</param>
+    /// <returns>An observable sequence of event arguments.</returns>
     protected static IObservable<TEventArgs> CreateObservableFromEventInfo(object target, string eventName)
     {
         // This handles both Action<T> and EventHandler<T> style events.
@@ -91,6 +191,13 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return observable;
     }
 
+    /// <summary>
+    /// Creates an observable from an event pattern using delegate add/remove handlers.
+    /// </summary>
+    /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <returns>An observable sequence of event arguments.</returns>
     protected static IObservable<TEventArgs> CreateObservableFromEventPattern<TDelegate>(Action<TDelegate> addHandler, Action<TDelegate> removeHandler)
     {
         IObservable<TEventArgs> observable = Observable.FromEventPattern<TDelegate, TEventArgs>(addHandler, removeHandler)
@@ -98,6 +205,12 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
         return observable;
     }
 
+    /// <summary>
+    /// Creates an observable from add/remove handlers for <see cref="Action{TEventArgs}"/>.
+    /// </summary>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <returns>An observable sequence of event arguments.</returns>
     protected static IObservable<TEventArgs> CreateObservableFromEvent(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler)
     {
         IObservable<TEventArgs> observable = Observable.FromEvent(addHandler, removeHandler);
@@ -105,20 +218,69 @@ public class ObservableEvent<TEventArgs>(IObservable<TEventArgs> observable) : I
     }
 }
 
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
 #pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
 #pragma warning restore IDE0079 // Remove unnecessary suppression
 
+/// <summary>
+/// Represents an observable event abstraction that allows subscribing to events in various ways.
+/// </summary>
+/// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
 public interface IObservableEvent<TEventArgs> : IDisposable
 {
+    /// <summary>
+    /// Subscribes to an event on the specified target object using the event name and observer.
+    /// </summary>
+    /// <param name="target">The target object containing the event.</param>
+    /// <param name="eventName">The name of the event to subscribe to.</param>
+    /// <param name="observer">The observer to subscribe.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(object target, string eventName, IObserver<TEventArgs> observer);
 
+    /// <summary>
+    /// Subscribes to an event on the specified target object using the event name and action.
+    /// </summary>
+    /// <param name="target">The target object containing the event.</param>
+    /// <param name="eventName">The name of the event to subscribe to.</param>
+    /// <param name="onNext">The action to invoke for each event.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(object target, string eventName, Action<TEventArgs> onNext);
 
+    /// <summary>
+    /// Subscribes to an event using delegate add/remove handlers and an observer.
+    /// </summary>
+    /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="observer">The observer to subscribe.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe<TDelegate>(Action<TDelegate> addHandler, Action<TDelegate> removeHandler, IObserver<TEventArgs> observer);
 
+    /// <summary>
+    /// Subscribes to an event using delegate add/remove handlers and an action.
+    /// </summary>
+    /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="onNext">The action to invoke for each event.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe<TDelegate>(Action<TDelegate> addHandler, Action<TDelegate> removeHandler, Action<TEventArgs> onNext);
 
+    /// <summary>
+    /// Subscribes to an event using add/remove handlers for <see cref="Action{TEventArgs}"/> and an observer.
+    /// </summary>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="observer">The observer to subscribe.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, IObserver<TEventArgs> observer);
 
+    /// <summary>
+    /// Subscribes to an event using add/remove handlers for <see cref="Action{TEventArgs}"/> and an action.
+    /// </summary>
+    /// <param name="addHandler">The action to add the event handler.</param>
+    /// <param name="removeHandler">The action to remove the event handler.</param>
+    /// <param name="onNext">The action to invoke for each event.</param>
+    /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, Action<TEventArgs> onNext);
 }

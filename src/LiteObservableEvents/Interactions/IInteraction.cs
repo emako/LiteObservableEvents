@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace LiteObservableEvents.Interactions;
+﻿namespace LiteObservableEvents.Interactions;
 
 /// <summary>
 /// Represents an interaction between collaborating application components.
