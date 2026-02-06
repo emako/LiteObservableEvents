@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 
 namespace LiteObservableEvents;
@@ -8,7 +8,7 @@ namespace LiteObservableEvents;
 public class WeakReferenceEventHub
 {
     /// <summary>
-    /// Gets the default singleton instance of <see cref="StrongReferenceEventHub"/>.
+    /// Gets the default singleton instance of <see cref="WeakReferenceEventHub"/>.
     /// </summary>
     public static WeakReferenceEventHub Default { get; } = new();
 
@@ -16,13 +16,13 @@ public class WeakReferenceEventHub
     /// Stores all managed subscriptions for disposal.
     /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles")]
-    protected internal static CompositeDisposable _subscriptions => StrongReferenceEventHub.Default._subscriptions;
+    protected readonly CompositeDisposable _subscriptions = [];
 
     /// <summary>
     /// Removes and disposes all subscriptions whose holder has been garbage-collected.
     /// Call this explicitly to reclaim resources, or rely on automatic cleanup when subscribing with a holder.
     /// </summary>
-    public static void Cleanup()
+    public void Cleanup()
     {
         CleanupDeadHolders();
     }
@@ -30,7 +30,7 @@ public class WeakReferenceEventHub
     /// <summary>
     /// Disposes and removes from the hub any subscription whose holder is no longer alive (has been GC'd).
     /// </summary>
-    protected static void CleanupDeadHolders()
+    protected void CleanupDeadHolders()
     {
         _subscriptions.Where(subscription =>
             subscription is IObservableEvent observableEvent
