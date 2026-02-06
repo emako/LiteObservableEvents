@@ -10,6 +10,14 @@
     Height="450"
     mc:Ignorable="d">
     <Grid Margin="10">
-        <Button Content="X" />
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Button Content="Interactions demo: Request confirmation" Command="{Binding AskConfirmCommand}" Padding="12,6" Margin="0,0,0,8" />
+            <TextBlock Text="{Binding LastResult}" HorizontalAlignment="Center" Margin="0,0,0,12" />
+            <Button Content="Raise static event + static object event (toggle bool)" Command="{Binding RaiseStaticEventsCommand}" Padding="12,6" Margin="0,0,0,8" />
+            <TextBlock HorizontalAlignment="Center" Margin="0,0,0,4">
+                <Run Text="Static event toggle: " />
+                <Run Text="{Binding StaticEventToggle, Mode=OneWay}" FontWeight="Bold" />
+            </TextBlock>
+        </StackPanel>
     </Grid>
 </Window>

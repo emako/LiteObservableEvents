@@ -192,7 +192,7 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
     /// <summary>
     /// Creates an observable from an event on the specified target object using reflection.
     /// </summary>
-    /// <param name="target">The target object containing the event.</param>
+    /// <param name="target">The target object containing the event or a type of static event class.</param>
     /// <param name="eventName">The name of the event to observe.</param>
     /// <returns>An observable sequence of event arguments.</returns>
     protected static IObservable<TEventArgs> CreateObservableFromEventInfo(object target, string eventName)
@@ -203,18 +203,43 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
         IObservable<TEventArgs> observable = Observable.FromEvent<TEventArgs>(
             handler =>
             {
-                EventInfo eventInfo = target.GetType().GetEvent(eventName)
-                    ?? throw new ArgumentException($"Event '{eventName}' not found on target type '{target.GetType().Name}'.");
-                Delegate del = Delegate.CreateDelegate(eventInfo.EventHandlerType!, handler, nameof(handler.Invoke));
-                eventInfo.AddEventHandler(target, del);
+                if (target is Type type)
+                {
+                    EventInfo eventInfo = type.GetEvent(eventName)
+                        ?? throw new ArgumentException($"Event '{eventName}' not found on target type '{target.GetType().Name}'.");
+                    Delegate del = Delegate.CreateDelegate(eventInfo.EventHandlerType!, handler, nameof(handler.Invoke));
+
+                    eventInfo.AddEventHandler(target, del);
+                }
+                else
+                {
+                    EventInfo eventInfo = target.GetType().GetEvent(eventName)
+                        ?? throw new ArgumentException($"Event '{eventName}' not found on target type '{target.GetType().Name}'.");
+                    Delegate del = Delegate.CreateDelegate(eventInfo.EventHandlerType!, handler, nameof(handler.Invoke));
+
+                    eventInfo.AddEventHandler(target, del);
+                }
             },
             handler =>
             {
-                EventInfo? eventInfo = target.GetType().GetEvent(eventName);
-                if (eventInfo is null) return; // Should not happen if add worked
+                if (target is Type type)
+                {
+                    EventInfo? eventInfo = type.GetEvent(eventName);
+                    if (eventInfo is null) return; // Should not happen if add worked
 
-                Delegate del = Delegate.CreateDelegate(eventInfo.EventHandlerType!, handler, nameof(handler.Invoke));
-                eventInfo.RemoveEventHandler(target, del);
+                    // TODO: ref the delegate from addHandler
+                    Delegate del = Delegate.CreateDelegate(eventInfo.EventHandlerType!, handler, nameof(handler.Invoke));
+                    eventInfo.RemoveEventHandler(target, del);
+                }
+                else
+                {
+                    EventInfo? eventInfo = target.GetType().GetEvent(eventName);
+                    if (eventInfo is null) return; // Should not happen if add worked
+
+                    // TODO: ref the delegate from addHandler
+                    Delegate del = Delegate.CreateDelegate(eventInfo.EventHandlerType!, handler, nameof(handler.Invoke));
+                    eventInfo.RemoveEventHandler(target, del);
+                }
             });
 
         return observable;
