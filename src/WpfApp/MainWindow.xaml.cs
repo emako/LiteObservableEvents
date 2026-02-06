@@ -19,7 +19,7 @@ public partial class MainWindow : Window
         this.Events().Closed
             .Subscribe(_ =>
             {
-                WeakReferenceEventHub.Default.UnsubscribeAll(this);
+                WeakReferenceEventHub.Default.UnsubscribeAllOf(this);
                 ViewModel?.Dispose();
             });
 

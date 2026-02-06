@@ -187,7 +187,7 @@ public class WeakReferenceEventHub
     /// This allows the hub to continue managing new subscriptions after clearing existing ones.
     /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// </summary>
-    public void UnsubscribeAll(object? holder)
+    public void UnsubscribeAllOf(object? holder)
     {
         if (holder is null) return;
 
