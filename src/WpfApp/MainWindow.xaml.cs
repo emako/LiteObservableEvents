@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Reactive.Linq;
 using System.Windows;
 using LiteObservableEvents;
+using System.Diagnostics;
 
 namespace WpfApp;
 
@@ -17,8 +18,13 @@ public partial class MainWindow : Window
         this.Events().Closed
             .Subscribe(_ => (DataContext as IDisposable)?.Dispose());
 
-        this.Events().Loaded
-            .Subscribe(_ => System.Diagnostics.Debug.WriteLine("Window Loaded!"));
+        //this.Events().Loaded
+        //    .Subscribe(_ => System.Diagnostics.Debug.WriteLine("Window Loaded!"));
+
+        ObservableEventHub.Default.Subscribe(this.Events().Loaded, _ =>
+        {
+            Debug.WriteLine("Window Loaded!");
+        });
     }
 }
 
