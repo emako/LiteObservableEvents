@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="src/LiteObservableEvents.Package/LiteObservableEvents.Package.csproj" />
+  <Project Path="src/LiteObservableEvents.SourceGenerator/LiteObservableEvents.SourceGenerator.csproj" />
   <Project Path="src/LiteObservableEvents/LiteObservableEvents.csproj" />
   <Project Path="src/WpfApp/WpfApp.csproj" />
 </Solution>

@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <Version>1.0.0</Version>
+    <RootNamespace>LiteObservableEvents.SourceGenerator</RootNamespace>
+    <PackageId>LiteObservableEvents.SourceGenerator</PackageId>
+    <Authors>ema</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/emako/LiteObservableEvents</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/emako/LiteObservableEvents</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>LiteObservableEvents SourceGenerator Rx Events Observable</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>A .NET source generator which produces IObservable for events contained within a object including all base classes.</Description>
+    <PackageIcon>Logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NoWarn>$(NoWarn);NU1605;NU5128;RS2008;CS8622</NoWarn>
+    <IsPackable>true</IsPackable>
+    <!--<IncludeBuildOutput>false</IncludeBuildOutput>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" PrivateAssets="all"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Logo.png" Pack="true" PackagePath="\"/>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+  </ItemGroup>
+</Project>

@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Reactive.Linq;
 using System.Windows;
+using LiteObservableEvents;
 
 namespace WpfApp;
 
@@ -10,7 +12,13 @@ public partial class MainWindow : Window
         ThemeMode = ThemeMode.Dark;
         DataContext = new MainViewModel();
         InitializeComponent();
-        Closed += (_, _) => (DataContext as IDisposable)?.Dispose();
+
+        // Example: Use LiteObservableEvents to subscribe to window events
+        this.Events().Closed
+            .Subscribe(_ => (DataContext as IDisposable)?.Dispose());
+
+        this.Events().Loaded
+            .Subscribe(_ => System.Diagnostics.Debug.WriteLine("Window Loaded!"));
     }
 }
 
