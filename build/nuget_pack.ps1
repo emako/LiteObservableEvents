@@ -1,7 +1,7 @@
 Set-Location $PSScriptRoot
 
 $projects = @(
-    "..\src\LiteObservableEvents",
+    "..\src\LiteObservableEvents.Package"
 )
 
 foreach ($proj in $projects) {
