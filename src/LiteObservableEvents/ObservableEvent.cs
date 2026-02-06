@@ -7,16 +7,28 @@ namespace LiteObservableEvents;
 #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly
 
-public class ObservableEvent<TEventArgs> : IObservableEvent<TEventArgs>
+public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TEventArgs>
 {
+    protected object? _holder = null;
     protected IObservable<TEventArgs>? _observable = null;
     protected IDisposable? _subscription = null;
+
+    public object? Holder
+    {
+        get => _holder;
+        set => _holder = value;
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ObservableEvent{TEventArgs}"/> class.
     /// </summary>
     public ObservableEvent()
     {
+    }
+
+    public ObservableEvent(object? holder)
+    {
+        _holder = holder;
     }
 
     /// <summary>
@@ -28,11 +40,18 @@ public class ObservableEvent<TEventArgs> : IObservableEvent<TEventArgs>
         _observable = observable;
     }
 
+    public ObservableEvent(object? holder, IObservable<TEventArgs> observable)
+    {
+        _holder = holder;
+        _observable = observable;
+    }
+
     /// <summary>
     /// Disposes the observable event and unsubscribes from the underlying observable.
     /// </summary>
     public virtual void Dispose()
     {
+        _holder = null;
         _observable = null;
         _subscription?.Dispose();
         _subscription = null;
@@ -283,4 +302,16 @@ public interface IObservableEvent<TEventArgs> : IDisposable
     /// <param name="onNext">The action to invoke for each event.</param>
     /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, Action<TEventArgs> onNext);
+}
+
+/// <summary>
+/// Represents an observable event abstraction with an optional holder reference.
+/// </summary>
+public interface IObservableEvent : IDisposable
+{
+    /// <summary>
+    /// Gets or sets the holder object that owns or is associated with this event subscription.
+    /// This is typically used to track the owner of the subscription.
+    /// </summary>
+    public object? Holder { get; set; }
 }

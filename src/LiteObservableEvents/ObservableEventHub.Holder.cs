@@ -1,55 +1,19 @@
-﻿using System.Reactive.Disposables;
+﻿namespace LiteObservableEvents;
 
-namespace LiteObservableEvents;
-
-#pragma warning disable IDE0079 // Remove unnecessary suppression
-#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
-
-/// <summary>
-/// Provides a hub for managing and subscribing to multiple observable events.
-/// </summary>
-public partial class ObservableEventHub : IDisposable
+/// <inheritdoc/>
+public partial class ObservableEventHub
 {
-    /// <summary>
-    /// Gets the default singleton instance of <see cref="ObservableEventHub"/>.
-    /// </summary>
-    public static ObservableEventHub Default { get; } = new();
-
-    /// <summary>
-    /// Stores all managed subscriptions for disposal.
-    /// </summary>
-    protected readonly CompositeDisposable _subscriptions = [];
-
-    /// <summary>
-    /// Disposes all managed subscriptions.
-    /// </summary>
-    public void Dispose()
-    {
-        _subscriptions.Dispose();
-    }
-
-    /// <summary>
-    /// Adds an existing subscription to the hub for management.
-    /// </summary>
-    /// <param name="subscription">The subscription to add.</param>
-    /// <returns>The same <see cref="IDisposable"/> instance that was added.</returns>
-    public IDisposable Subscribe(IDisposable subscription)
-    {
-        // Not necessarily ObservableEvent<> type, but allowed to join.
-        _subscriptions.Add(subscription);
-        return subscription;
-    }
-
     /// <summary>
     /// Subscribes an observer to the specified observable and manages the subscription.
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="observable">The observable to subscribe to.</param>
     /// <param name="observer">The observer to subscribe.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs>(IObservable<TEventArgs> observable, IObserver<TEventArgs> observer)
+    public IDisposable Subscribe<TEventArgs>(object? holder, IObservable<TEventArgs> observable, IObserver<TEventArgs> observer)
     {
-        ObservableEvent<TEventArgs> observableEvent = new(observable);
+        ObservableEvent<TEventArgs> observableEvent = new(holder, observable);
         _subscriptions.Add(observableEvent.Subscribe(observer));
         return observableEvent;
     }
@@ -58,12 +22,13 @@ public partial class ObservableEventHub : IDisposable
     /// Subscribes an action to the specified observable and manages the subscription.
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="observable">The observable to subscribe to.</param>
     /// <param name="onNext">The action to invoke for each event.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs>(IObservable<TEventArgs> observable, Action<TEventArgs> onNext)
+    public IDisposable Subscribe<TEventArgs>(object? holder, IObservable<TEventArgs> observable, Action<TEventArgs> onNext)
     {
-        ObservableEvent<TEventArgs> observableEvent = new(observable);
+        ObservableEvent<TEventArgs> observableEvent = new(holder, observable);
         _subscriptions.Add(observableEvent.Subscribe(onNext));
         return observableEvent;
     }
@@ -72,13 +37,14 @@ public partial class ObservableEventHub : IDisposable
     /// Subscribes an observer to an event on the specified target object and manages the subscription.
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="target">The target object containing the event.</param>
     /// <param name="eventName">The name of the event to subscribe to.</param>
     /// <param name="observer">The observer to subscribe.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs>(object target, string eventName, IObserver<TEventArgs> observer)
+    public IDisposable Subscribe<TEventArgs>(object? holder, object target, string eventName, IObserver<TEventArgs> observer)
     {
-        ObservableEvent<TEventArgs> observableEvent = new();
+        ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(target, eventName, observer));
         return observableEvent;
     }
@@ -87,13 +53,14 @@ public partial class ObservableEventHub : IDisposable
     /// Subscribes an action to an event on the specified target object and manages the subscription.
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="target">The target object containing the event.</param>
     /// <param name="eventName">The name of the event to subscribe to.</param>
     /// <param name="onNext">The action to invoke for each event.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs>(object target, string eventName, Action<TEventArgs> onNext)
+    public IDisposable Subscribe<TEventArgs>(object? holder, object target, string eventName, Action<TEventArgs> onNext)
     {
-        ObservableEvent<TEventArgs> observableEvent = new();
+        ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(target, eventName, onNext));
         return observableEvent;
     }
@@ -103,13 +70,14 @@ public partial class ObservableEventHub : IDisposable
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
     /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="addHandler">The action to add the event handler.</param>
     /// <param name="removeHandler">The action to remove the event handler.</param>
     /// <param name="observer">The observer to subscribe.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs, TDelegate>(Action<TDelegate> addHandler, Action<TDelegate> removeHandler, IObserver<TEventArgs> observer)
+    public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<TDelegate> addHandler, Action<TDelegate> removeHandler, IObserver<TEventArgs> observer)
     {
-        ObservableEvent<TEventArgs> observableEvent = new();
+        ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, observer));
         return observableEvent;
     }
@@ -119,13 +87,14 @@ public partial class ObservableEventHub : IDisposable
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
     /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="addHandler">The action to add the event handler.</param>
     /// <param name="removeHandler">The action to remove the event handler.</param>
     /// <param name="onNext">The action to invoke for each event.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs, TDelegate>(Action<TDelegate> addHandler, Action<TDelegate> removeHandler, Action<TEventArgs> onNext)
+    public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<TDelegate> addHandler, Action<TDelegate> removeHandler, Action<TEventArgs> onNext)
     {
-        ObservableEvent<TEventArgs> observableEvent = new();
+        ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, onNext));
         return observableEvent;
     }
@@ -135,13 +104,14 @@ public partial class ObservableEventHub : IDisposable
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
     /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="addHandler">The action to add the event handler.</param>
     /// <param name="removeHandler">The action to remove the event handler.</param>
     /// <param name="observer">The observer to subscribe.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs, TDelegate>(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, IObserver<TEventArgs> observer)
+    public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, IObserver<TEventArgs> observer)
     {
-        ObservableEvent<TEventArgs> observableEvent = new();
+        ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, observer));
         return observableEvent;
     }
@@ -151,30 +121,67 @@ public partial class ObservableEventHub : IDisposable
     /// </summary>
     /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
     /// <typeparam name="TDelegate">The delegate type of the event handler.</typeparam>
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// <param name="addHandler">The action to add the event handler.</param>
     /// <param name="removeHandler">The action to remove the event handler.</param>
     /// <param name="onNext">The action to invoke for each event.</param>
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
-    public IDisposable Subscribe<TEventArgs, TDelegate>(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, Action<TEventArgs> onNext)
+    public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, Action<TEventArgs> onNext)
     {
-        ObservableEvent<TEventArgs> observableEvent = new();
+        ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, onNext));
         return observableEvent;
     }
 
     /// <summary>
-    /// Unsubscribes and disposes all managed subscriptions without disposing the <see cref="_subscriptions"/> collection itself.
+    /// Unsubscribes and disposes all holder-managed subscriptions without disposing the <see cref="_subscriptions"/> collection itself.
     /// This allows the hub to continue managing new subscriptions after clearing existing ones.
+    /// <param name="holder">The holder object associated with this subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     /// </summary>
-    public void UnsubscribeAll()
+    public void UnsubscribeAll(object? holder)
     {
-        foreach (IDisposable subscription in _subscriptions)
-        {
-            subscription.Dispose();
-        }
-        _subscriptions.Clear();
+        if (holder is null) return;
+
+        _subscriptions
+            .Where(subscription => subscription is IObservableEvent observableEvent)
+            .Select(subscription => (subscription as IObservableEvent)!)
+            .ToList()
+            .ForEach(observableEvent =>
+            {
+                observableEvent.Dispose();
+                _subscriptions.Remove(observableEvent);
+            });
     }
 }
 
-#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
-#pragma warning restore IDE0079 // Remove unnecessary suppression
+public static class ObservableEventHubExtensions
+{
+    /// <summary>
+    /// Attaches an optional holder object to a subscription.
+    /// </summary>
+    /// <param name="subscription">
+    /// The subscription returned from an observable sequence.
+    /// </param>
+    /// <param name="holder">
+    /// An arbitrary object representing the logical owner of this subscription.
+    /// This is typically used for debugging, diagnostics, or lifecycle tracking.
+    /// </param>
+    /// <returns>
+    /// The original <see cref="IDisposable"/> subscription instance.
+    /// </returns>
+    /// <remarks>
+    /// If the subscription implements <see cref="IObservableEvent"/>,
+    /// the holder will be stored on the subscription instance.
+    /// Otherwise, this method has no effect.
+    ///
+    /// This method does not affect the disposal semantics of the subscription.
+    /// </remarks>
+    public static IDisposable AttachHolder(this IDisposable subscription, object? holder)
+    {
+        if (subscription is IObservableEvent observableEvent)
+        {
+            observableEvent.Holder = holder;
+        }
+        return subscription;
+    }
+}

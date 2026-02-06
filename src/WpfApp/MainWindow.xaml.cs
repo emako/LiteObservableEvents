@@ -1,27 +1,29 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Reactive.Linq;
-using System.Windows;
 using LiteObservableEvents;
 using System.Diagnostics;
+using System.Reactive.Linq;
+using System.Windows;
 
 namespace WpfApp;
 
 public partial class MainWindow : Window
 {
+    public MainViewModel ViewModel { get; }
+
     public MainWindow()
     {
         ThemeMode = ThemeMode.Dark;
-        DataContext = new MainViewModel();
+        DataContext = ViewModel = new();
         InitializeComponent();
 
-        // Example: Use LiteObservableEvents to subscribe to window events
         this.Events().Closed
-            .Subscribe(_ => (DataContext as IDisposable)?.Dispose());
+            .Subscribe(_ =>
+            {
+                ObservableEventHub.Default.UnsubscribeAll(this);
+                ViewModel?.Dispose();
+            });
 
-        //this.Events().Loaded
-        //    .Subscribe(_ => System.Diagnostics.Debug.WriteLine("Window Loaded!"));
-
-        ObservableEventHub.Default.Subscribe(this.Events().Loaded, _ =>
+        ObservableEventHub.Default.Subscribe(this, ViewModel.Events().SomeEvent, _ =>
         {
             Debug.WriteLine("Window Loaded!");
         });
@@ -30,6 +32,8 @@ public partial class MainWindow : Window
 
 public partial class MainViewModel : ObservableObject, IDisposable
 {
+    public event EventHandler? SomeEvent;
+
     public void Dispose()
     {
     }
