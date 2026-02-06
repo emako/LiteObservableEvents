@@ -11,4 +11,17 @@
     <NuspecFile>Package.nuspec</NuspecFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <FailBuild>true</FailBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LiteObservableEvents.SourceGenerator\LiteObservableEvents.SourceGenerator.csproj"/>
+    <ProjectReference Include="..\LiteObservableEvents\LiteObservableEvents.csproj"/>
+  </ItemGroup>
+
+  <Target Name="FailBuildIfDebug" BeforeTargets="Build" Condition="'$(FailBuild)' == 'true'">
+    <Error Text="Debug builds are not allowed for this project."/>
+  </Target>
 </Project>

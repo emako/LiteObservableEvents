@@ -18,7 +18,6 @@
     <dependencies>
       <group targetFramework="netstandard2.0" />
       <group targetFramework="netstandard2.1" />
-      <group targetFramework="net462" />
       <group targetFramework="net472" />
       <group targetFramework="net48" />
       <group targetFramework="net6.0" />
@@ -31,8 +30,6 @@
   <files>
   <file src="..\..\Logo.png" target="" />
   <file src="..\..\README.md" target="" />
-  <file src="..\LiteObservableEvents\bin\Release\net462\LiteObservableEvents.dll" target="lib\net462\LiteObservableEvents.dll" />
-  <file src="..\LiteObservableEvents\bin\Release\net462\LiteObservableEvents.pdb" target="lib\net462\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net472\LiteObservableEvents.dll" target="lib\net472\LiteObservableEvents.dll" />
   <file src="..\LiteObservableEvents\bin\Release\net472\LiteObservableEvents.pdb" target="lib\net472\LiteObservableEvents.pdb" />
   <file src="..\LiteObservableEvents\bin\Release\net48\LiteObservableEvents.dll" target="lib\net48\LiteObservableEvents.dll" />
