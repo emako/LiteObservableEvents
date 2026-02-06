@@ -8,17 +8,17 @@ namespace LiteObservableEvents;
 /// <summary>
 /// Provides a hub for managing and subscribing to multiple observable events.
 /// </summary>
-public partial class ObservableEventHub : IDisposable
+public partial class StrongReferenceEventHub : IDisposable
 {
     /// <summary>
-    /// Gets the default singleton instance of <see cref="ObservableEventHub"/>.
+    /// Gets the default singleton instance of <see cref="StrongReferenceEventHub"/>.
     /// </summary>
-    public static ObservableEventHub Default { get; } = new();
+    public static StrongReferenceEventHub Default { get; } = new();
 
     /// <summary>
     /// Stores all managed subscriptions for disposal.
     /// </summary>
-    protected readonly CompositeDisposable _subscriptions = [];
+    protected internal readonly CompositeDisposable _subscriptions = [];
 
     /// <summary>
     /// Disposes all managed subscriptions.

@@ -19,11 +19,11 @@ public partial class MainWindow : Window
         this.Events().Closed
             .Subscribe(_ =>
             {
-                ObservableEventHub.Default.UnsubscribeAll(this);
+                WeakReferenceEventHub.Default.UnsubscribeAll(this);
                 ViewModel?.Dispose();
             });
 
-        ObservableEventHub.Default.Subscribe(this, ViewModel.Events().SomeEvent, _ =>
+        WeakReferenceEventHub.Default.Subscribe(this, ViewModel.Events().SomeEvent, _ =>
         {
             Debug.WriteLine("Window Loaded!");
         });

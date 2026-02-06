@@ -1,8 +1,49 @@
-﻿namespace LiteObservableEvents;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Disposables;
 
-/// <inheritdoc/>
-public partial class ObservableEventHub
+namespace LiteObservableEvents;
+
+[SuppressMessage("Performance", "CA1822:Mark members as static")]
+[SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression")]
+public class WeakReferenceEventHub
 {
+    /// <summary>
+    /// Gets the default singleton instance of <see cref="StrongReferenceEventHub"/>.
+    /// </summary>
+    public static WeakReferenceEventHub Default { get; } = new();
+
+    /// <summary>
+    /// Stores all managed subscriptions for disposal.
+    /// </summary>
+    [SuppressMessage("Style", "IDE1006:Naming Styles")]
+    protected internal static CompositeDisposable _subscriptions => StrongReferenceEventHub.Default._subscriptions;
+
+    /// <summary>
+    /// Removes and disposes all subscriptions whose holder has been garbage-collected.
+    /// Call this explicitly to reclaim resources, or rely on automatic cleanup when subscribing with a holder.
+    /// </summary>
+    public static void Cleanup()
+    {
+        CleanupDeadHolders();
+    }
+
+    /// <summary>
+    /// Disposes and removes from the hub any subscription whose holder is no longer alive (has been GC'd).
+    /// </summary>
+    protected static void CleanupDeadHolders()
+    {
+        _subscriptions.Where(subscription =>
+            subscription is IObservableEvent observableEvent
+                && observableEvent.Holder is { } weakReference
+                && !weakReference.TryGetTarget(out _))
+            .ToList()
+            .ForEach(subscription =>
+            {
+                subscription.Dispose();
+                _subscriptions.Remove(subscription);
+            });
+    }
+
     /// <summary>
     /// Subscribes an observer to the specified observable and manages the subscription.
     /// </summary>
@@ -13,6 +54,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs>(object? holder, IObservable<TEventArgs> observable, IObserver<TEventArgs> observer)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder, observable);
         _subscriptions.Add(observableEvent.Subscribe(observer));
         return observableEvent;
@@ -28,6 +70,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs>(object? holder, IObservable<TEventArgs> observable, Action<TEventArgs> onNext)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder, observable);
         _subscriptions.Add(observableEvent.Subscribe(onNext));
         return observableEvent;
@@ -44,6 +87,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs>(object? holder, object target, string eventName, IObserver<TEventArgs> observer)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(target, eventName, observer));
         return observableEvent;
@@ -60,6 +104,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs>(object? holder, object target, string eventName, Action<TEventArgs> onNext)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(target, eventName, onNext));
         return observableEvent;
@@ -77,6 +122,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<TDelegate> addHandler, Action<TDelegate> removeHandler, IObserver<TEventArgs> observer)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, observer));
         return observableEvent;
@@ -94,6 +140,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<TDelegate> addHandler, Action<TDelegate> removeHandler, Action<TEventArgs> onNext)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, onNext));
         return observableEvent;
@@ -111,6 +158,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, IObserver<TEventArgs> observer)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, observer));
         return observableEvent;
@@ -128,6 +176,7 @@ public partial class ObservableEventHub
     /// <returns>An <see cref="IDisposable"/> representing the subscription.</returns>
     public IDisposable Subscribe<TEventArgs, TDelegate>(object? holder, Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, Action<TEventArgs> onNext)
     {
+        CleanupDeadHolders();
         ObservableEvent<TEventArgs> observableEvent = new(holder);
         _subscriptions.Add(observableEvent.Subscribe(addHandler, removeHandler, onNext));
         return observableEvent;
@@ -143,16 +192,15 @@ public partial class ObservableEventHub
         if (holder is null) return;
 
         _subscriptions
-            .Where(subscription => subscription is IObservableEvent observableEvent)
-            .Select(subscription => (subscription as IObservableEvent)!)
-            .Where(observableEvent => observableEvent.Holder is not null
-                 && observableEvent.Holder.TryGetTarget(out object? target)
-                 && ReferenceEquals(target, holder))
+            .Where(subscription => subscription is IObservableEvent observableEvent
+                && observableEvent.Holder is { } weakReference
+                && weakReference.TryGetTarget(out object? target)
+                && ReferenceEquals(target, holder))
             .ToList()
-            .ForEach(observableEvent =>
+            .ForEach(subscription =>
             {
-                observableEvent.Dispose();
-                _subscriptions.Remove(observableEvent);
+                subscription.Dispose();
+                _subscriptions.Remove(subscription);
             });
     }
 }
@@ -179,7 +227,7 @@ public static class ObservableEventHubExtensions
     ///
     /// This method does not affect the disposal semantics of the subscription.
     /// </remarks>
-    public static IDisposable AttachHolder(this IDisposable subscription, object? holder)
+    public static IDisposable SetObservableEventHolder(this IDisposable subscription, object? holder)
     {
         if (subscription is IObservableEvent observableEvent)
         {

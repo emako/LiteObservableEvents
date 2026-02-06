@@ -13,6 +13,7 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
     protected IObservable<TEventArgs>? _observable = null;
     protected IDisposable? _subscription = null;
 
+    /// <inheritdoc/>
     public WeakReference<object?>? Holder
     {
         get => _holder;
@@ -26,6 +27,10 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ObservableEvent{TEventArgs}"/> class with the specified holder object.
+    /// </summary>
+    /// <param name="holder">The holder object associated with this event subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
     public ObservableEvent(object? holder)
     {
         _holder = new(holder);
@@ -40,6 +45,11 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
         _observable = observable;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ObservableEvent{TEventArgs}"/> class with the specified holder object and observable.
+    /// </summary>
+    /// <param name="holder">The holder object associated with this event subscription. Used to track the owner of the subscription for group management or targeted unsubscription.</param>
+    /// <param name="observable">The observable to subscribe to.</param>
     public ObservableEvent(object? holder, IObservable<TEventArgs> observable)
     {
         _holder = new(holder);
@@ -242,6 +252,18 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
 #pragma warning restore IDE0079 // Remove unnecessary suppression
 
 /// <summary>
+/// Represents an observable event abstraction with an optional holder reference.
+/// </summary>
+public interface IObservableEvent : IDisposable
+{
+    /// <summary>
+    /// Gets or sets the holder object that owns or is associated with this event subscription.
+    /// This is typically used to track the owner of the subscription.
+    /// </summary>
+    public WeakReference<object?>? Holder { get; set; }
+}
+
+/// <summary>
 /// Represents an observable event abstraction that allows subscribing to events in various ways.
 /// </summary>
 /// <typeparam name="TEventArgs">The type of the event arguments.</typeparam>
@@ -302,16 +324,4 @@ public interface IObservableEvent<TEventArgs> : IDisposable
     /// <param name="onNext">The action to invoke for each event.</param>
     /// <returns>The current <see cref="ObservableEvent{TEventArgs}"/> instance.</returns>
     public ObservableEvent<TEventArgs> Subscribe(Action<Action<TEventArgs>> addHandler, Action<Action<TEventArgs>> removeHandler, Action<TEventArgs> onNext);
-}
-
-/// <summary>
-/// Represents an observable event abstraction with an optional holder reference.
-/// </summary>
-public interface IObservableEvent : IDisposable
-{
-    /// <summary>
-    /// Gets or sets the holder object that owns or is associated with this event subscription.
-    /// This is typically used to track the owner of the subscription.
-    /// </summary>
-    public WeakReference<object?>? Holder { get; set; }
 }
