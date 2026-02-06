@@ -145,6 +145,9 @@ public partial class ObservableEventHub
         _subscriptions
             .Where(subscription => subscription is IObservableEvent observableEvent)
             .Select(subscription => (subscription as IObservableEvent)!)
+            .Where(observableEvent => observableEvent.Holder is not null
+                 && observableEvent.Holder.TryGetTarget(out object? target)
+                 && ReferenceEquals(target, holder))
             .ToList()
             .ForEach(observableEvent =>
             {
@@ -180,7 +183,7 @@ public static class ObservableEventHubExtensions
     {
         if (subscription is IObservableEvent observableEvent)
         {
-            observableEvent.Holder = holder;
+            observableEvent.Holder = new(holder);
         }
         return subscription;
     }

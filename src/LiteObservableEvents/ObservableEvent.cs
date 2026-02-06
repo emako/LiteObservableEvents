@@ -9,11 +9,11 @@ namespace LiteObservableEvents;
 
 public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TEventArgs>
 {
-    protected object? _holder = null;
+    protected WeakReference<object?>? _holder = null;
     protected IObservable<TEventArgs>? _observable = null;
     protected IDisposable? _subscription = null;
 
-    public object? Holder
+    public WeakReference<object?>? Holder
     {
         get => _holder;
         set => _holder = value;
@@ -28,7 +28,7 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
 
     public ObservableEvent(object? holder)
     {
-        _holder = holder;
+        _holder = new(holder);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class ObservableEvent<TEventArgs> : IObservableEvent, IObservableEvent<TE
 
     public ObservableEvent(object? holder, IObservable<TEventArgs> observable)
     {
-        _holder = holder;
+        _holder = new(holder);
         _observable = observable;
     }
 
@@ -313,5 +313,5 @@ public interface IObservableEvent : IDisposable
     /// Gets or sets the holder object that owns or is associated with this event subscription.
     /// This is typically used to track the owner of the subscription.
     /// </summary>
-    public object? Holder { get; set; }
+    public WeakReference<object?>? Holder { get; set; }
 }
