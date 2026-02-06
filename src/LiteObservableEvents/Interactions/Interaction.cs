@@ -1,0 +1,186 @@
+﻿using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+
+namespace LiteObservableEvents.Interactions;
+
+/// <summary>
+/// Represents an interaction between collaborating application components.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Interactions allow collaborating components in an application to ask each other questions. Typically,
+/// interactions allow a view model to get the user's confirmation from the view before proceeding with
+/// some operation. The view provides the interaction's confirmation interface in a handler registered
+/// for the interaction.
+/// </para>
+/// <para>
+/// Interactions have both an input and an output. Interaction inputs and outputs use generic type parameters.
+/// The interaction's input provides handlers the information they require to ask a question. The handler
+/// then provides the interaction with an output as the answer to the question.
+/// </para>
+/// <para>
+/// Handlers receive an <see cref="IInteractionContext{TInput, TOutput}"/>, which exposes the request via
+/// <see cref="IInteractionContext{TInput, TOutput}.Input"/> and lets the handler respond by calling
+/// <see cref="IInteractionContext{TInput, TOutput}.SetOutput(TOutput)"/>.
+/// </para>
+/// <para>
+/// By default, handlers are invoked in reverse order of registration. That is, handlers registered later
+/// are given the opportunity to handle interactions before handlers that were registered earlier. This
+/// chaining mechanism enables handlers to be registered temporarily in a specific context, such that
+/// interactions can be handled differently according to the situation. This behavior can be modified
+/// by overriding the <see cref="Handle"/> method in a subclass.
+/// </para>
+/// <para>
+/// Note that handlers are not required to handle an interaction. They can choose to ignore it, leaving it
+/// for some other handler to handle. The interaction's <see cref="Handle"/> method will throw an
+/// <see cref="UnhandledInteractionException{TInput, TOutput}"/> if no handler handles the interaction.
+/// </para>
+/// </remarks>
+/// <example>
+/// <code language="csharp">
+/// <![CDATA[
+/// public class DeleteCustomerViewModel : ReactiveObject
+/// {
+///     public Interaction<string, bool> ConfirmDelete { get; } = new();
+///
+///     public async Task<bool> TryDeleteAsync(string customerName)
+///     {
+///         var approved = await ConfirmDelete.Handle($"Delete {customerName}?");
+///         return approved;
+///     }
+/// }
+///
+/// public partial class DeleteCustomerView : ReactiveUserControl<DeleteCustomerViewModel>
+/// {
+///     public DeleteCustomerView()
+///     {
+///         this.WhenActivated(disposables =>
+///             ViewModel!.ConfirmDelete.RegisterHandler(async context =>
+///             {
+///                 var approved = await dialogService.ShowAsync(context.Input);
+///                 context.SetOutput(approved);
+///             }).DisposeWith(disposables));
+///     }
+/// }
+/// ]]>
+/// </code>
+/// </example>
+/// <typeparam name="TInput">
+/// The interaction's input type.
+/// </typeparam>
+/// <typeparam name="TOutput">
+/// The interaction's output type.
+/// </typeparam>
+/// <param name="handlerScheduler">
+/// The scheduler to use when invoking handlers, which defaults to <c>CurrentThreadScheduler.Instance</c> if <see langword="null"/>.
+/// </param>
+public class Interaction<TInput, TOutput>(IScheduler? handlerScheduler = null) : IInteraction<TInput, TOutput>
+{
+    private readonly List<Func<IInteractionContext<TInput, TOutput>, IObservable<Unit>>> _handlers = [];
+    private readonly object _sync = new();
+    private readonly IScheduler _handlerScheduler = handlerScheduler ?? CurrentThreadScheduler.Instance;
+
+    /// <inheritdoc/>
+    public IDisposable RegisterHandler(Action<IInteractionContext<TInput, TOutput>> handler)
+    {
+        return handler switch
+        {
+            null => throw new ArgumentNullException(nameof(handler)),
+            _ => RegisterHandler(interaction =>
+            {
+                handler(interaction);
+                return Observables.Unit;
+            })
+        };
+    }
+
+    /// <inheritdoc />
+    public IDisposable RegisterHandler(Func<IInteractionContext<TInput, TOutput>, Task> handler)
+    {
+        if (handler is null)
+            throw new ArgumentNullException(nameof(handler));
+
+        return RegisterHandler(interaction => handler(interaction).ToObservable());
+    }
+
+    /// <inheritdoc />
+    public IDisposable RegisterHandler<TDontCare>(Func<IInteractionContext<TInput, TOutput>, IObservable<TDontCare>> handler)
+    {
+        if (handler is null)
+            throw new ArgumentNullException(nameof(handler));
+
+        IObservable<Unit> ContentHandler(IInteractionContext<TInput, TOutput> context) => handler(context).Select(_ => Unit.Default);
+
+        AddHandler(ContentHandler);
+        return Disposable.Create(() => RemoveHandler(ContentHandler));
+    }
+
+    /// <inheritdoc />
+    public virtual IObservable<TOutput> Handle(TInput input)
+    {
+        var context = GenerateContext(input);
+
+        return Enumerable.Reverse(GetHandlers())
+            .ToObservable()
+            .ObserveOn(_handlerScheduler)
+            .Select(handler => Observable.Defer(() => handler(context)))
+            .Concat()
+            .TakeWhile(_ => !context.IsHandled)
+            .SelectMany(_ => Observable.Empty<TOutput>())
+            .Concat(
+                Observable.Defer(
+                    () => context.IsHandled
+                        ? Observable.Return(context.GetOutput())
+                        : Observable.Throw<TOutput>(new UnhandledInteractionException<TInput, TOutput>(this, input))));
+    }
+
+    /// <summary>
+    /// Gets all registered handlers by order of registration.
+    /// </summary>
+    /// <returns>
+    /// All registered handlers.
+    /// </returns>
+    protected Func<IInteractionContext<TInput, TOutput>, IObservable<Unit>>[] GetHandlers()
+    {
+        lock (_sync)
+        {
+            return [.. _handlers];
+        }
+    }
+
+    /// <summary>
+    /// Gets an interaction context which is used to provide information about the interaction.
+    /// </summary>
+    /// <param name="input">The input that is being passed in.</param>
+    /// <returns>The interaction context.</returns>
+    protected virtual IOutputContext<TInput, TOutput> GenerateContext(TInput input) => new InteractionContext<TInput, TOutput>(input);
+
+    /// <summary>
+    /// Adds a handler delegate to be invoked for interaction contexts.
+    /// </summary>
+    /// <param name="handler">A delegate that processes an interaction context and returns an observable sequence representing the handler's
+    /// completion. Cannot be null.</param>
+    private void AddHandler(Func<IInteractionContext<TInput, TOutput>, IObservable<Unit>> handler)
+    {
+        lock (_sync)
+        {
+            _handlers.Add(handler);
+        }
+    }
+
+    /// <summary>
+    /// Removes the specified interaction handler from the collection of registered handlers.
+    /// </summary>
+    /// <param name="handler">The handler delegate to remove. Represents a function that processes an interaction context and returns an
+    /// observable sequence.</param>
+    private void RemoveHandler(Func<IInteractionContext<TInput, TOutput>, IObservable<Unit>> handler)
+    {
+        lock (_sync)
+        {
+            _handlers.Remove(handler);
+        }
+    }
+}

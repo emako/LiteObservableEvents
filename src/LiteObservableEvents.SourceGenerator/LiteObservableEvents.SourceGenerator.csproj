@@ -27,7 +27,7 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoWarn>$(NoWarn);NU1605;NU5128;RS2008;CS8622</NoWarn>
     <IsPackable>true</IsPackable>
-    <!--<IncludeBuildOutput>false</IncludeBuildOutput>-->
+
   </PropertyGroup>
 
   <ItemGroup>
