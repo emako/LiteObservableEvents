@@ -14,7 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>LiteObservableEvents MVVM</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>XXX</Description>
+    <Description>Lightweight observable event hub and source-generated event bridges for .NET, with optional weak-reference (holder) lifecycle and MVVM-style interactions.</Description>
     <PackageIcon>Logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <DebugType>portable</DebugType>
