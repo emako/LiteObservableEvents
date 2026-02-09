@@ -11,10 +11,10 @@
     <projectUrl>https://github.com/emako/LiteObservableEvents</projectUrl>
     <repository type="git" url="https://github.com/emako/LiteObservableEvents" />
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>XXX</description>
+    <description>Lightweight observable event hub and source-generated event bridges for .NET, with optional weak-reference (holder) lifecycle and MVVM-style interactions.</description>
     <releaseNotes>https://github.com/emako/LiteObservableEvents/releases</releaseNotes>
-    <copyright>XXX</copyright>
-    <tags>LiteObservableEvents ObservableEvents MVVM</tags>
+    <copyright>Copyright (c) 2026 LiteObservableEvents contributors</copyright>
+    <tags>LiteObservableEvents ObservableEvents MVVM Event Rx EventHub Rx-EventHub RxUI Rx-UI</tags>
     <dependencies>
       <group targetFramework="netstandard2.0">
         <dependency id="System.Reactive" version="6.1.0" />
