@@ -7,7 +7,14 @@
     <UseWPF>true</UseWPF>
     <LangVersion>preview</LangVersion>
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <MyNuGetFlag>false</MyNuGetFlag>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <MyNuGetFlag>true</MyNuGetFlag>
   </PropertyGroup>
 
   <ItemGroup>
